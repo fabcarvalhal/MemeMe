@@ -70,12 +70,23 @@
                         <barButtonItem systemItem="flexibleSpace" id="Zfp-pA-yhJ"/>
                     </toolbarItems>
                     <navigationItem key="navigationItem" id="evj-Ew-iJ7">
-                        <barButtonItem key="leftBarButtonItem" image="square.and.arrow.up" catalog="system" id="9so-Ab-SKe" userLabel="Share Button">
+                        <leftBarButtonItems>
+                            <barButtonItem image="square.and.arrow.up" catalog="system" id="9so-Ab-SKe" userLabel="Share Button">
+                                <connections>
+                                    <action selector="shareMeme:" destination="BYZ-38-t0r" id="6aM-7i-GBt"/>
+                                </connections>
+                            </barButtonItem>
+                            <barButtonItem title="Item" image="textformat.alt" catalog="system" id="o7v-cm-2mJ">
+                                <connections>
+                                    <action selector="showFontSelector:" destination="BYZ-38-t0r" id="Nc4-eA-gce"/>
+                                </connections>
+                            </barButtonItem>
+                        </leftBarButtonItems>
+                        <barButtonItem key="rightBarButtonItem" title="Cancel" id="Vm5-2Q-MFL" userLabel="Cancel Button">
                             <connections>
-                                <action selector="shareMeme:" destination="BYZ-38-t0r" id="6aM-7i-GBt"/>
+                                <action selector="cancelAction" destination="BYZ-38-t0r" id="XDQ-0o-4w4"/>
                             </connections>
                         </barButtonItem>
-                        <barButtonItem key="rightBarButtonItem" title="Cancel" id="Vm5-2Q-MFL" userLabel="Cancel Button"/>
                     </navigationItem>
                     <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
@@ -116,5 +127,6 @@
     <resources>
         <image name="camera.fill" catalog="system" width="128" height="94"/>
         <image name="square.and.arrow.up" catalog="system" width="115" height="128"/>
+        <image name="textformat.alt" catalog="system" width="128" height="78"/>
     </resources>
 </document>

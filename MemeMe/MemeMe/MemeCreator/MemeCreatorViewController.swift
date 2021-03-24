@@ -7,7 +7,7 @@
 
 import UIKit
 
-class MemeCreatorViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+class MemeCreatorViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIFontPickerViewControllerDelegate {
     // MARK: Outlets
     @IBOutlet weak var pickedImageView: UIImageView!
     @IBOutlet weak var cameraButton: UIBarButtonItem! {
@@ -19,16 +19,12 @@ class MemeCreatorViewController: UIViewController, UIImagePickerControllerDelega
     @IBOutlet weak var topTextField: UITextField! {
         didSet {
             topTextField.delegate = self
-            topTextField.attributedPlaceholder = NSAttributedString(string: defaultTopText, attributes: memeTextAttributes)
-            topTextField.defaultTextAttributes = memeTextAttributes
         }
     }
     
     @IBOutlet weak var bottomTextField: UITextField! {
         didSet {
             bottomTextField.delegate = self
-            bottomTextField.attributedPlaceholder = NSAttributedString(string: defaultBottomText, attributes: memeTextAttributes)
-            bottomTextField.defaultTextAttributes = memeTextAttributes
         }
     }
     
@@ -40,15 +36,15 @@ class MemeCreatorViewController: UIViewController, UIImagePickerControllerDelega
     
     
     // MARK: Useful variables and constants
-    lazy var memeTextAttributes: [NSAttributedString.Key: Any] = {
+    func getMemeTextAttributes(using fontName: String) -> [NSAttributedString.Key: Any] {
         return  [
-            NSAttributedString.Key.strokeColor: UIColor.black,
+            NSAttributedString.Key.strokeColor: fontName == defaultFontName ? UIColor.black : UIColor.white,
             NSAttributedString.Key.foregroundColor: UIColor.white,
-            NSAttributedString.Key.font: UIFont(name: "HelveticaNeue-CondensedBlack", size: 40) ?? UIFont.systemFont(ofSize: 40),
+            NSAttributedString.Key.font: UIFont(name: fontName, size: 40) ?? UIFont.systemFont(ofSize: 40),
             NSAttributedString.Key.strokeWidth:  -5.0,
             NSAttributedString.Key.paragraphStyle: placeholderParagraphStyle
         ]
-    }()
+    }
     
     lazy var  placeholderParagraphStyle: NSParagraphStyle = {
         let style = NSMutableParagraphStyle()
@@ -58,11 +54,16 @@ class MemeCreatorViewController: UIViewController, UIImagePickerControllerDelega
     
     private let defaultTopText = "TOP"
     private let defaultBottomText = "BOTTOM"
-
+    private let defaultFontName = "HelveticaNeue-CondensedBlack"
+    
+    func getAttributedPlaceHolder(_ text: String, fontName: String) -> NSAttributedString{
+        return NSAttributedString(string: text, attributes: getMemeTextAttributes(using: fontName))
+    }
     
     // MARK: Controller lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        updateLabelFonts(fontName: defaultFontName)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -73,6 +74,15 @@ class MemeCreatorViewController: UIViewController, UIImagePickerControllerDelega
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         removeObservers()
+    }
+    
+    // MARK Cancel action
+    @IBAction func cancelAction() {
+        updateLabelFonts(fontName: defaultFontName)
+        topTextField.text = nil
+        bottomTextField.text = nil
+        pickedImageView.image = nil
+        shareButton.isEnabled = false
     }
     
     // MARK: Pick image
@@ -149,6 +159,34 @@ class MemeCreatorViewController: UIViewController, UIImagePickerControllerDelega
         return memedImage
     }
     
+    
+    // MARK: Function to show font picker controller
+    @IBAction func showFontSelector(_ sender: AnyObject) {
+        let fontPicker = UIFontPickerViewController()
+        fontPicker.delegate = self
+        present(fontPicker, animated: true, completion: nil)
+    }
+    
+    
+    // MARK: Font Picker Delegate Functions
+    
+    func fontPickerViewControllerDidCancel(_ viewController: UIFontPickerViewController) {
+        dismiss(animated: true, completion: nil)
+    }
+    
+    func fontPickerViewControllerDidPickFont(_ viewController: UIFontPickerViewController) {
+        updateLabelFonts(fontName: viewController.selectedFontDescriptor?.postscriptName ?? defaultFontName)
+    }
+    
+    // MARK: Labels Configuration
+    
+    func updateLabelFonts(fontName: String) {
+        bottomTextField.attributedPlaceholder = NSAttributedString(string: defaultBottomText, attributes: getMemeTextAttributes(using: fontName))
+        bottomTextField.defaultTextAttributes = getMemeTextAttributes(using: fontName)
+        
+        topTextField.attributedPlaceholder = NSAttributedString(string: defaultTopText, attributes: getMemeTextAttributes(using: fontName))
+        topTextField.defaultTextAttributes = getMemeTextAttributes(using: fontName)
+    }
 }
 
 
