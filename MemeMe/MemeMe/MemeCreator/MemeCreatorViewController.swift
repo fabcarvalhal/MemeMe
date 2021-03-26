@@ -145,19 +145,20 @@ class MemeCreatorViewController: UIViewController, UIImagePickerControllerDelega
     
     func generateMeme() -> UIImage {
         
-        navigationController?.isNavigationBarHidden = true
-        navigationController?.isToolbarHidden = true
-
+        toggleTopAndBottomBars(true)
         
         UIGraphicsBeginImageContext(self.view.frame.size)
         view.drawHierarchy(in: self.view.frame, afterScreenUpdates: true)
         let memedImage:UIImage = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
 
-        
-        navigationController?.isNavigationBarHidden = false
-        navigationController?.isToolbarHidden = false
+        toggleTopAndBottomBars(false)
         return memedImage
+    }
+    
+    func toggleTopAndBottomBars(_ isHidden: Bool) {
+        navigationController?.isNavigationBarHidden = isHidden
+        navigationController?.isToolbarHidden = isHidden
     }
     
     
