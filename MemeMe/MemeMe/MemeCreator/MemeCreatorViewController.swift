@@ -183,11 +183,13 @@ class MemeCreatorViewController: UIViewController, UIImagePickerControllerDelega
     // MARK: Labels Configuration
     
     func updateLabelFonts(fontName: String) {
-        bottomTextField.attributedPlaceholder = NSAttributedString(string: defaultBottomText, attributes: getMemeTextAttributes(using: fontName))
-        bottomTextField.defaultTextAttributes = getMemeTextAttributes(using: fontName)
-        
-        topTextField.attributedPlaceholder = NSAttributedString(string: defaultTopText, attributes: getMemeTextAttributes(using: fontName))
-        topTextField.defaultTextAttributes = getMemeTextAttributes(using: fontName)
+        configure(textField: bottomTextField, withPlaceholder: defaultBottomText, and: fontName)
+        configure(textField: topTextField, withPlaceholder: defaultTopText, and: fontName)
+    }
+    
+    func configure(textField: UITextField, withPlaceholder text: String, and fontName: String) {
+        textField.defaultTextAttributes = getMemeTextAttributes(using: fontName)
+        textField.attributedPlaceholder = NSAttributedString(string: text, attributes: getMemeTextAttributes(using: fontName))
     }
 }
 
