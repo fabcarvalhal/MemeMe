@@ -7,7 +7,17 @@
 
 import UIKit
 
+protocol MemeCreatorEditionDelegate: class {
+    func memeCreatorDidFinishEdit(_ editedMeme: Meme)
+}
+
 class MemeCreatorViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIFontPickerViewControllerDelegate {
+    
+    enum MemeCreatorMode {
+        case create
+        case edit
+    }
+    
     // MARK: Outlets
     @IBOutlet weak var pickedImageView: UIImageView!
     @IBOutlet weak var cameraButton: UIBarButtonItem! {
@@ -55,6 +65,11 @@ class MemeCreatorViewController: UIViewController, UIImagePickerControllerDelega
     private let defaultTopText = "TOP"
     private let defaultBottomText = "BOTTOM"
     private let defaultFontName = "HelveticaNeue-CondensedBlack"
+    private var customFont: String?
+    
+    var creatorMode = MemeCreatorMode.create
+    var memeForEdition: Meme?
+    weak var editionDelegate: MemeCreatorEditionDelegate?
     
     func getAttributedPlaceHolder(_ text: String, fontName: String) -> NSAttributedString{
         return NSAttributedString(string: text, attributes: getMemeTextAttributes(using: fontName))
@@ -63,8 +78,9 @@ class MemeCreatorViewController: UIViewController, UIImagePickerControllerDelega
     // MARK: Controller lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        updateLabelFonts(fontName: defaultFontName)
+        configureView()
     }
+    
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -76,6 +92,24 @@ class MemeCreatorViewController: UIViewController, UIImagePickerControllerDelega
         removeObservers()
     }
     
+    func configureView() {
+        switch creatorMode {
+        case .create:
+            updateLabelFonts(fontName: defaultFontName)
+        case .edit:
+            guard let meme = memeForEdition else { return }
+            displayMemeForEdition(meme)
+        }
+    }
+    
+    func displayMemeForEdition(_ meme: Meme) {
+        topTextField.text = meme.topText
+        bottomTextField.text = meme.bottomText
+        pickedImageView.image = meme.image
+        updateLabelFonts(fontName: meme.fontName)
+        shareButton.isEnabled = true
+    }
+    
     // MARK Cancel action
     @IBAction func cancelAction() {
         updateLabelFonts(fontName: defaultFontName)
@@ -83,6 +117,7 @@ class MemeCreatorViewController: UIViewController, UIImagePickerControllerDelega
         bottomTextField.text = nil
         pickedImageView.image = nil
         shareButton.isEnabled = false
+        dismiss(animated: true)
     }
     
     // MARK: Pick image
@@ -136,9 +171,25 @@ class MemeCreatorViewController: UIViewController, UIImagePickerControllerDelega
         view.resignFirstResponder()
         let memedImage = generateMeme()
         let shareActivityController = UIActivityViewController(activityItems: [memedImage], applicationActivities: nil)
+        
         shareActivityController.completionWithItemsHandler = { [weak self] activity, success, items, error in
+            guard let self = self else { return }
             if success {
-                _ = Meme(image: self?.pickedImageView.image ?? UIImage(), topText: self?.topTextField.text, bottomText: self?.bottomTextField.text, memedImage: memedImage)
+                let font = self.customFont ?? self.defaultFontName
+                let newMeme = Meme(image: self.pickedImageView.image ?? UIImage(),
+                                   topText: self.topTextField.text ?? self.defaultTopText,
+                                   bottomText: self.bottomTextField.text ?? self.defaultBottomText,
+                                   memedImage: memedImage,
+                                   fontName: font)
+                switch self.creatorMode {
+                case .create:
+                    MemeStorage.instance.save(newMeme)
+                case .edit:
+                    guard let oldMeme = self.memeForEdition else { return }
+                    MemeStorage.instance.replace(oldMeme, with: newMeme)
+                }
+                self.editionDelegate?.memeCreatorDidFinishEdit(newMeme)
+                self.dismiss(animated: true)
             }
         }
         present(shareActivityController, animated: true)
@@ -172,13 +223,10 @@ class MemeCreatorViewController: UIViewController, UIImagePickerControllerDelega
     
     
     // MARK: Font Picker Delegate Functions
-    
-    func fontPickerViewControllerDidCancel(_ viewController: UIFontPickerViewController) {
-        dismiss(animated: true, completion: nil)
-    }
-    
     func fontPickerViewControllerDidPickFont(_ viewController: UIFontPickerViewController) {
-        updateLabelFonts(fontName: viewController.selectedFontDescriptor?.postscriptName ?? defaultFontName)
+        let selectedFontName = viewController.selectedFontDescriptor?.postscriptName
+        customFont = selectedFontName
+        updateLabelFonts(fontName: selectedFontName ?? defaultFontName)
     }
     
     // MARK: Labels Configuration

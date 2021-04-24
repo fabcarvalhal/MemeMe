@@ -7,9 +7,10 @@
 
 import UIKit
 
-struct Meme {
+struct Meme: Equatable {
     let image: UIImage
     let topText: String?
     let bottomText: String?
     let memedImage: UIImage
+    let fontName: String
 }
